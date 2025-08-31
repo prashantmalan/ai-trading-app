@@ -18,6 +18,25 @@ from frontend.utils.api_client import APIClient
 
 # Page configuration
 st.set_page_config(
+    page_title="AI Trading Assistant",
+    page_icon="🤖",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+import os
+import sys
+
+# Add parent directory to path for imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from frontend.components.dashboard import create_dashboard
+from frontend.components.analysis_form import create_analysis_form
+from frontend.components.results_display import display_results
+from frontend.utils.api_client import APIClient
+
+# Page configuration
+st.set_page_config(
     page_title="AI-Powered Trading Assistant",
     page_icon="📈",
     layout="wide",
@@ -154,6 +173,9 @@ def main():
             # Sample dashboard
             st.subheader("📈 Sample Analysis")
             display_sample_dashboard()
+    
+    # Display disclaimer at the bottom
+    display_disclaimer()
 
 
 def check_api_connection(api_client: APIClient) -> bool:
@@ -367,6 +389,48 @@ def display_sample_dashboard():
         height=300
     )
     st.plotly_chart(fig, use_container_width=True)
+
+
+def display_disclaimer():
+    """Display a professional disclaimer at the bottom of the page."""
+    
+    st.markdown("---")  # Separator line
+    
+    st.markdown("""
+    <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+                padding: 20px; 
+                border-radius: 15px; 
+                margin: 20px 0; 
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                border: 1px solid #e0e0e0;">
+        <div style="display: flex; align-items: center; margin-bottom: 15px;">
+            <div style="font-size: 24px; margin-right: 10px;">⚠️</div>
+            <h3 style="color: white; margin: 0; font-weight: 600;">Important Disclaimer</h3>
+        </div>
+        <div style="color: white; font-size: 14px; line-height: 1.6;">
+            <p style="margin: 0 0 10px 0;">
+                <strong>📚 Educational Purpose Only:</strong> This application is designed for educational and informational purposes only.
+            </p>
+            <p style="margin: 0 0 10px 0;">
+                <strong>🚫 Not Financial Advice:</strong> We are not licensed financial advisors. The AI-generated recommendations should not be considered as professional financial advice.
+            </p>
+            <p style="margin: 0 0 10px 0;">
+                <strong>🔍 Do Your Research:</strong> Always conduct thorough research and consult with qualified financial professionals before making any investment decisions.
+            </p>
+            <p style="margin: 0 0 10px 0;">
+                <strong>⚡ Risk Warning:</strong> All investments carry risk, including potential loss of principal. Past performance does not guarantee future results.
+            </p>
+            <p style="margin: 0; font-style: italic;">
+                <strong>🎯 Use at Your Discretion:</strong> Use this tool's insights as one of many factors in your decision-making process, never as the sole basis for investment decisions.
+            </p>
+        </div>
+        <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.3);">
+            <p style="color: rgba(255,255,255,0.9); font-size: 12px; margin: 0; text-align: center;">
+                💡 Always remember: Only invest what you can afford to lose
+            </p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 if __name__ == "__main__":

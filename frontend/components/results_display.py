@@ -67,44 +67,129 @@ def display_stock_overview(result: Dict[str, Any]):
 
 
 def display_recommendation(result: Dict[str, Any]):
-    """Display AI recommendation."""
+    """Display AI recommendation with enhanced formatting for better understanding."""
     
     recommendation = result.get('recommendation', {})
     
-    st.subheader("🤖 AI Recommendation")
+    st.subheader("🤖 AI Trading Recommendation")
     
-    col1, col2 = st.columns([2, 1])
+    # Main recommendation display
+    rec_type = recommendation.get('recommendation', 'HOLD')
+    confidence = recommendation.get('confidence', 0.5)
+    risk_level = recommendation.get('risk_level', 'MEDIUM')
+    
+    # Color coding for recommendations
+    color_map = {
+        'BUY': '#00C851',   # Green
+        'SELL': '#FF4444',  # Red
+        'HOLD': '#FF8800'   # Orange
+    }
+    
+    color = color_map.get(rec_type, '#FF8800')
+    
+    # Large recommendation card
+    st.markdown(f"""
+    <div style="background: linear-gradient(135deg, {color}22, {color}11); 
+                border: 2px solid {color}; 
+                border-radius: 15px; 
+                padding: 20px; 
+                margin: 20px 0; 
+                text-align: center;">
+        <h2 style="color: {color}; margin: 0; font-size: 2.5em;">
+            {rec_type}
+        </h2>
+        <p style="margin: 10px 0; font-size: 1.2em; color: #666;">
+            Confidence: <strong>{confidence:.0%}</strong> | Risk Level: <strong>{risk_level}</strong>
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Price targets
+    col1, col2, col3 = st.columns(3)
     
     with col1:
-        rec_type = recommendation.get('recommendation', 'HOLD')
-        confidence = recommendation.get('confidence', 0.5)
-        risk_level = recommendation.get('risk_level', 'MEDIUM')
-        
-        # Color-coded recommendation
-        colors = {'BUY': 'green', 'SELL': 'red', 'HOLD': 'orange'}
-        color = colors.get(rec_type, 'gray')
-        
-        st.markdown(f"### <span style='color: {color}'>{rec_type}</span>", unsafe_allow_html=True)
-        st.write(f"**Confidence:** {confidence:.1%}")
-        st.write(f"**Risk Level:** {risk_level}")
-        
-        reasoning = recommendation.get('reasoning', '')
-        if reasoning:
-            st.write("**Reasoning:**")
-            st.write(reasoning)
-        
-        # Target price and stop loss
-        target_price = recommendation.get('target_price')
-        stop_loss = recommendation.get('stop_loss')
-        
-        if target_price:
-            st.write(f"**Target Price:** ${target_price:.2f}")
-        if stop_loss:
-            st.write(f"**Stop Loss:** ${stop_loss:.2f}")
+        current_price = result.get('stock_data', {}).get('current_price', 0)
+        st.metric("Current Price", f"${current_price:.2f}")
     
     with col2:
-        # Confidence gauge
-        create_confidence_gauge(confidence)
+        target_price = recommendation.get('target_price')
+        if target_price:
+            st.metric("Target Price", f"${target_price:.2f}")
+        else:
+            st.metric("Target Price", "Not Set")
+    
+    with col3:
+        stop_loss = recommendation.get('stop_loss')
+        if stop_loss:
+            st.metric("Stop Loss", f"${stop_loss:.2f}")
+        else:
+            st.metric("Stop Loss", "Not Set")
+    
+    # Enhanced reasoning display
+    reasoning = recommendation.get('reasoning', 'No reasoning provided')
+    
+    st.subheader("📝 Detailed Analysis & Reasoning")
+    
+    # Add a container with better formatting
+    with st.container():
+        st.markdown("""
+        <div style="background-color: #f8f9fa; 
+                    border-left: 4px solid #007bff; 
+                    padding: 15px; 
+                    border-radius: 5px; 
+                    margin: 10px 0;">
+        """, unsafe_allow_html=True)
+        
+        # Split reasoning into sections if it contains the enhanced format
+        if "COMPANY PERFORMANCE:" in reasoning or "SIMPLE SUMMARY:" in reasoning:
+            sections = reasoning.split('\n\n')
+            for section in sections:
+                if section.strip():
+                    if section.startswith('SIMPLE SUMMARY:'):
+                        st.markdown("### 🔍 Simple Summary")
+                        st.info(section.replace('SIMPLE SUMMARY:', '').strip())
+                    elif 'COMPANY PERFORMANCE:' in section:
+                        st.markdown("### 🏢 Company Performance")
+                        st.write(section.strip())
+                    elif 'STOCK PRICE SITUATION:' in section:
+                        st.markdown("### 💰 Stock Price Analysis")
+                        st.write(section.strip())
+                    elif 'MARKET CONDITIONS:' in section:
+                        st.markdown("### 📊 Market Conditions")
+                        st.write(section.strip())
+                    elif 'RISKS TO CONSIDER:' in section:
+                        st.markdown("### ⚠️ Risks to Consider")
+                        st.warning(section.strip())
+                    elif 'WHY THIS RECOMMENDATION:' in section:
+                        st.markdown("### 🎯 Why This Recommendation")
+                        st.success(section.strip())
+                    else:
+                        st.write(section)
+        else:
+            # Fallback for original format
+            st.write(reasoning)
+        
+        st.markdown("</div>", unsafe_allow_html=True)
+    
+    # Currency impact
+    currency_impact = recommendation.get('currency_impact')
+    if currency_impact:
+        st.subheader("💱 Currency Impact")
+        st.info(currency_impact)
+    
+    # Risk warning
+    st.markdown("""
+    <div style="background-color: #fff3cd; 
+                border: 1px solid #ffeaa7; 
+                border-radius: 5px; 
+                padding: 10px; 
+                margin: 15px 0;">
+        <p style="margin: 0; color: #856404;">
+            <strong>⚠️ Risk Disclaimer:</strong> This analysis is generated by AI for educational purposes only. 
+            Always conduct your own research and consider consulting with financial professionals before making investment decisions.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 def create_confidence_gauge(confidence: float):

@@ -93,42 +93,55 @@ class AIAnalysisService:
         return context
     
     def _create_analysis_prompt(self, context: Dict[str, Any]) -> str:
-        """Create detailed prompt for AI analysis."""
+        """Create detailed prompt for AI analysis with enhanced reasoning for non-financial users."""
         
         prompt = f"""
-        Please analyze the following stock and provide a trading recommendation:
+        You are a financial analysis AI assistant. Please analyze the following stock and provide a trading recommendation that is easy to understand for both financial experts and everyday investors.
 
         STOCK INFORMATION:
-        - Ticker: {context['ticker']}
-        - Current Price: ${context['current_price']:.2f} ({context['currency']})
-        - Previous Close: ${context['previous_close']:.2f}
-        - Price Change: {context['price_change_percent']}%
-        - Market Cap Category: {context['market_cap_category']}
-        - Sector: {context['sector']}
+        - Company: {context['ticker']} 
+        - Current Stock Price: ${context['current_price']:.2f} ({context['currency']})
+        - Yesterday's Closing Price: ${context['previous_close']:.2f}
+        - Price Change Today: {context['price_change_percent']}%
+        - Company Size: {context['market_cap_category']} (based on total company value)
+        - Business Sector: {context['sector']}
         - Industry: {context['industry']}
         - Country: {context['country']}
 
-        FINANCIAL METRICS:
-        - P/E Ratio: {context.get('pe_ratio', 'N/A')}
-        - Profit Margin: {context.get('profit_margin', 'N/A')}
-        - Debt-to-Equity: {context.get('debt_to_equity', 'N/A')}
-        - Return on Equity: {context.get('return_on_equity', 'N/A')}
-        - Beta: {context.get('beta', 'N/A')}
-        - Dividend Yield: {context.get('dividend_yield', 'N/A')}
-        - 52 Week High: ${context.get('52_week_high', 'N/A')}
-        - 52 Week Low: ${context.get('52_week_low', 'N/A')}
+        FINANCIAL HEALTH INDICATORS:
+        - P/E Ratio (Price-to-Earnings): {context.get('pe_ratio', 'N/A')} - This shows how much investors pay for each dollar of company earnings
+        - Profit Margin: {context.get('profit_margin', 'N/A')} - How much profit the company makes from each dollar of sales
+        - Debt-to-Equity Ratio: {context.get('debt_to_equity', 'N/A')} - How much debt the company has compared to shareholder investment
+        - Return on Equity (ROE): {context.get('return_on_equity', 'N/A')} - How efficiently the company uses shareholder money to generate profit
+        - Beta (Risk Measure): {context.get('beta', 'N/A')} - How much the stock price moves compared to the overall market
+        - Dividend Yield: {context.get('dividend_yield', 'N/A')} - Annual dividend payments as percentage of stock price
+        - 52-Week High: ${context.get('52_week_high', 'N/A')} - Highest price in the last year
+        - 52-Week Low: ${context.get('52_week_low', 'N/A')} - Lowest price in the last year
 
         CURRENCY ANALYSIS:
         {self._format_currency_analysis(context.get('currency_analysis'))}
 
+        IMPORTANT: Please provide your analysis in simple, easy-to-understand language that a person without financial background can comprehend. Explain financial terms when you use them.
+
         Please provide your analysis in the following format:
         RECOMMENDATION: [BUY/SELL/HOLD]
-        CONFIDENCE: [0.0-1.0]
+        CONFIDENCE: [0.0-1.0] (where 1.0 means very confident, 0.5 means uncertain)
         RISK_LEVEL: [LOW/MEDIUM/HIGH]
-        TARGET_PRICE: [price or N/A]
-        STOP_LOSS: [price or N/A]
-        REASONING: [detailed explanation of your recommendation considering all factors including currency impact]
-        CURRENCY_IMPACT: [brief assessment of how currency situation affects the recommendation]
+        TARGET_PRICE: [price or N/A] (what price we think the stock could reach)
+        STOP_LOSS: [price or N/A] (price at which to sell to limit losses)
+        
+        REASONING: [Provide detailed, easy-to-understand explanation that includes:]
+        1. COMPANY PERFORMANCE: Explain how well the company is doing financially in simple terms
+        2. STOCK PRICE SITUATION: Is the stock expensive, cheap, or fairly priced compared to the company's value?
+        3. MARKET CONDITIONS: How do current market conditions affect this stock?
+        4. RISKS TO CONSIDER: What could go wrong with this investment?
+        5. WHY THIS RECOMMENDATION: Summarize why you're suggesting BUY/SELL/HOLD in plain English
+        
+        SIMPLE EXPLANATION: [Provide a 2-3 sentence summary that a complete beginner could understand]
+        
+        CURRENCY_IMPACT: [Brief assessment of how currency situation affects the recommendation]
+
+        Remember: Use simple language and explain financial concepts. Think of explaining this to someone who has never invested before.
         """
         
         return prompt
@@ -145,7 +158,7 @@ class AIAnalysisService:
         return formatted
     
     def _parse_ai_recommendation(self, ai_response: str, ticker: str) -> TradingRecommendation:
-        """Parse AI response into structured recommendation."""
+        """Parse AI response into structured recommendation with enhanced reasoning."""
         
         lines = ai_response.strip().split('\n')
         
@@ -157,10 +170,15 @@ class AIAnalysisService:
         stop_loss = None
         reasoning = "AI analysis completed"
         currency_impact = None
+        simple_explanation = ""
         
         # Parse response
+        current_section = None
+        reasoning_parts = []
+        
         for line in lines:
             line = line.strip()
+            
             if line.startswith('RECOMMENDATION:'):
                 rec_text = line.split(':', 1)[1].strip().upper()
                 if rec_text in ['BUY', 'SELL', 'HOLD']:
@@ -181,24 +199,48 @@ class AIAnalysisService:
             elif line.startswith('TARGET_PRICE:'):
                 try:
                     price_text = line.split(':', 1)[1].strip()
-                    if price_text.replace('.', '').replace('$', '').isdigit():
-                        target_price = float(price_text.replace('$', ''))
-                except ValueError:
+                    if price_text.replace('.', '').replace('$', '').replace(',', '').isdigit():
+                        target_price = float(price_text.replace('$', '').replace(',', ''))
+                except (ValueError, AttributeError):
                     pass
             
             elif line.startswith('STOP_LOSS:'):
                 try:
                     price_text = line.split(':', 1)[1].strip()
-                    if price_text.replace('.', '').replace('$', '').isdigit():
-                        stop_loss = float(price_text.replace('$', ''))
-                except ValueError:
+                    if price_text.replace('.', '').replace('$', '').replace(',', '').isdigit():
+                        stop_loss = float(price_text.replace('$', '').replace(',', ''))
+                except (ValueError, AttributeError):
                     pass
             
             elif line.startswith('REASONING:'):
-                reasoning = line.split(':', 1)[1].strip()
+                current_section = 'reasoning'
+                reasoning_content = line.split(':', 1)[1].strip()
+                if reasoning_content:
+                    reasoning_parts.append(reasoning_content)
+            
+            elif line.startswith('SIMPLE_EXPLANATION:'):
+                current_section = 'simple'
+                simple_content = line.split(':', 1)[1].strip()
+                if simple_content:
+                    simple_explanation = simple_content
             
             elif line.startswith('CURRENCY_IMPACT:'):
+                current_section = 'currency'
                 currency_impact = line.split(':', 1)[1].strip()
+            
+            elif current_section == 'reasoning' and line and not line.startswith(('SIMPLE_EXPLANATION:', 'CURRENCY_IMPACT:')):
+                reasoning_parts.append(line)
+            
+            elif current_section == 'simple' and line and not line.startswith('CURRENCY_IMPACT:'):
+                simple_explanation += " " + line if simple_explanation else line
+        
+        # Combine reasoning parts
+        if reasoning_parts:
+            reasoning = " ".join(reasoning_parts)
+        
+        # Add simple explanation to reasoning if available
+        if simple_explanation:
+            reasoning += f"\n\nSIMPLE SUMMARY: {simple_explanation}"
         
         return TradingRecommendation(
             ticker=ticker,

@@ -1,0 +1,45 @@
+{
+  "analysis": {
+    "ticker": "AAPL",
+    "recommendation": "BUY",
+    "confidence": 0.85,
+    "target_price": 245.0,
+    "stop_loss": 215.0,
+    "risk_level": "MEDIUM",
+    "reasoning": "**Company Performance**: Apple demonstrates exceptional financial health with strong fundamentals. The company maintains healthy profit margins and shows consistent revenue growth, making it a solid investment choice.\n\n**Stock Price Situation**: AAPL is currently trading at $232.14, which is below its recent highs around $260. This presents a potential buying opportunity as the stock appears to be undervalued relative to its fundamentals.\n\n**Market Conditions**: The technology sector is showing positive momentum with increasing investor confidence. Market sentiment towards Apple remains bullish due to strong product lineup and services growth.\n\n**Financial Health**: Apple's balance sheet is robust with manageable debt levels (debt-to-equity ratio of 154.49) and strong return on equity (149.81%). The company's financial position supports long-term growth.\n\n**Currency Impact**: As a USD-based company with global operations, currency risk is minimal for USD investors. The company has effective hedging strategies in place.\n\n**Investment Recommendation**: Based on the comprehensive analysis, AAPL presents a favorable risk-reward profile with strong fundamentals supporting the BUY recommendation.",
+    "technical_indicators": {
+      "price_change_percent": -0.18,
+      "pe_ratio": 35.23,
+      "pe_category": "High",
+      "market_cap": 3445050310656.0,
+      "market_cap_category": "Mega Cap",
+      "debt_to_equity": 154.49,
+      "leverage_level": "High"
+    },
+    "currency_analysis": {
+      "company_currency": "USD",
+      "base_currency": "USD",
+      "currency_risk_level": "LOW",
+      "impact_assessment": "MINIMAL"
+    },
+    "market_sentiment": "Bullish"
+  },
+  "dashboard_metrics": {
+    "total_analyses": 1247,
+    "success_rate": 98.2,
+    "avg_response_time": "2.3s",
+    "popular_stocks": ["AAPL", "GOOGL", "MSFT", "TSLA", "AMZN"]
+  },
+  "ui_examples": {
+    "input_form": {
+      "ticker": "AAPL",
+      "base_currency": "USD",
+      "analysis_type": "comprehensive"
+    },
+    "error_example": {
+      "error": "Invalid ticker symbol",
+      "message": "The ticker 'XYZ123' was not found. Please verify the symbol and try again.",
+      "suggestions": ["AAPL", "GOOGL", "MSFT", "TSLA"]
+    }
+  }
+}
